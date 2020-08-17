@@ -9,5 +9,7 @@ RUN apk --update add --no-cache tini git openjdk8-jre curl bash screen pstree
 RUN mkdir /minecraft
 
 COPY ./docker-entrypoint.sh /
+
+EXPOSE 25565
 ENTRYPOINT ["/sbin/tini", "--", "/docker-entrypoint.sh"]
 CMD [ "server" ]
