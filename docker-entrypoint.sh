@@ -1,8 +1,14 @@
-#!/bin/sh
-set -o errexit
+#!/bin/bash
 
 mkdir -p /minecraft/.home
 export HOME=/minecraft/.home
+export MAVEN_OPTS="-Dmaven.repo.local=${HOME}/.m2"
+
+exit_server(){
+  echo 'Stopping MC Server..'
+  kill -SIGTERM "$(ps aux | grep java | grep -v grep | awk '{print $1}')"
+}
+trap "exit_server" SIGINT SIGTERM
 
 case "$1" in
   server)
@@ -10,17 +16,14 @@ case "$1" in
     cd /minecraft
 
     if [[ ! -f "spigot.jar" ]]; then
-      (/docker-entrypoint.sh update);
+      (/docker-entrypoint.sh update)
     fi
 
     if [[ ! -f "eula.txt" ]] || grep -q "eula=false" "eula.txt"; then
-      echo "You have to accept Minecrafts EULA to be able to start the server."
-      echo "Use the same docker run command you used, but append eula to read/accept it."
-      echo " E.g.: docker run ... -it Roboroads/spigot eula"
-      exit 1
+      (/docker-entrypoint.sh eula)
     fi
 
-    java -Xms1G -Xmx1G -XX:+UseConcMarkSweepGC -jar spigot.jar nogui
+    exec java -Xms1G -Xmx1G -XX:+UseConcMarkSweepGC -jar spigot.jar nogui
   ;;
 
   update)
